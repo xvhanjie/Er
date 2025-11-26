@@ -1,0 +1,216 @@
+% plot diagrams
+
+% calculating for Sigma(deltaPhi)
+clc;clear
+start_time=cputime;
+parameters1;
+
+% input for theta_b,theta_f,theta
+%==================================================
+% f=10.2kHz H=87km phi=90/180*pi theta_b=0/180*pi sigma_g=0.001 
+theta1_real=[  1.2727862e+00   1.5409892e+00   1.1276347e+00   9.2743386e-01   6.3796002e-01   ];
+theta1_imag=[  5.8069131e-03   6.0408139e-02   9.4583544e-03   9.1159281e-03   1.0065344e-02   ];
+
+theta2_real=[  1.2727778e+00   1.5409071e+00   1.1275976e+00   9.2739843e-01   6.3763648e-01   ];
+theta2_imag=[  5.8353801e-03   6.0263932e-02   9.4411031e-03   9.0839360e-03   1.0133150e-02   ];
+
+theta3_real=[  1.2727985e+00   1.5407787e+00   1.1277362e+00   9.2848039e-01   6.3824764e-01   ];
+theta3_imag=[  5.7786629e-03   6.0532899e-02   9.4797644e-03   8.5885801e-03   1.0037962e-02   ];
+
+%===================================================
+theta1=theta1_real+1i*theta1_imag;   % H
+theta2=theta2_real+1i*theta2_imag;   % H+dH
+theta3=theta3_real+1i*theta3_imag;   % H-dH
+
+alpha_bf=[];
+vp_bf=[];
+
+theta_bf=[theta2;
+          theta3;
+          theta1];
+NR_MODES=size(theta_bf,2);
+Nv=1;
+
+disp('Calculating alpha,vp,dalphadh,dvpdh...')
+for hj=1:3
+    theta=theta_bf(hj,:);
+    Height=HH+dH(hj);
+    
+% calculating alpha,vp,excitation factor
+[AttenuationRate1,PhaseVelocity1,ExcitationFactor,SI]=...
+    alpha_vp_EF1(theta,Height);
+alpha_bf(hj,:)=AttenuationRate1;
+vp_bf(hj,:)=PhaseVelocity1;
+
+end
+
+[dalpha,dvp]=dalpha_dvp(alpha_bf,vp_bf,dH(1));
+
+factor_v1=PhaseVelocity1.^2./dvp;
+
+disp('Computing Er and Sigma...')
+d_start=300;       % d=500-3000km
+d_end=4300;
+d_interval=10;   % interval is 10km
+d_number=(d_end-d_start)/d_interval+1;
+
+d=d_start;
+dd1=1;
+for dd=1:d_number
+
+[EMagnitude,F_n,phi_n]=...
+Fn_phin1(AttenuationRate1,PhaseVelocity1,ExcitationFactor,d);
+
+[theta_dx,t1,t2]=solve_theta_dx1(F_n,phi_n,dalpha,dvp,PhaseVelocity1,d,Nv);
+
+[sum_Er,SigmaDeltaPhi]=...
+Er_Sig1(EMagnitude,AttenuationRate1,PhaseVelocity1,ExcitationFactor,d,theta_dx);
+
+Er(dd)=sum_Er;
+sigma(dd)=SigmaDeltaPhi;
+
+if mod(dd,10)==0
+   distance1(dd1)=d;
+   sigma1(dd1)=SigmaDeltaPhi;
+   dd1=dd1+1;
+end
+
+d=d+d_interval;
+
+end
+
+% plot numerical results
+disp('plotting results...')
+distance=d_start:d_interval:d_end;
+plot((distance-300),20*log(sigma)-200,'r-','Linewidth',2)
+xlabel('传播距离 (km)')
+set(gca,'FontName','Times New Roman','FontSize',15)
+
+ylabel('场强E_r (dB)')
+
+hold on
+
+
+% plot diagrams
+
+% calculating for Sigma(deltaPhi)
+parameters3;
+
+% input for theta_b,theta_f,theta
+%==================================================
+% f=10.2kHz H=87km phi=90/180*pi theta_b=180/180*pi sigma_g=0.001
+theta1_real=[  1.2727862e+00   1.5409905e+00   1.1276347e+00   9.2743386e-01   6.3796002e-01   ];
+theta1_imag=[  5.8069131e-03   6.0407058e-02   9.4583532e-03   9.1159281e-03   1.0065344e-02   ];
+
+theta2_real=[  1.2727778e+00   1.5409313e+00   1.1275976e+00   9.2739843e-01   6.3763648e-01   ];
+theta2_imag=[  5.8353801e-03   6.0342537e-02   9.4411031e-03   9.0839360e-03   1.0133150e-02   ];
+
+theta3_real=[  1.2727985e+00   1.5407787e+00   1.1277362e+00   9.2744965e-01   6.3824764e-01   ];
+theta3_imag=[  5.7786629e-03   6.0532899e-02   9.4797645e-03   9.1475221e-03   1.0037962e-02   ];
+
+%===================================================
+theta1=theta1_real+1i*theta1_imag;   % H
+theta2=theta2_real+1i*theta2_imag;   % H+dH
+theta3=theta3_real+1i*theta3_imag;   % H-dH
+
+alpha_bf=[];
+vp_bf=[];
+
+theta_bf=[theta2;
+          theta3;
+          theta1];
+NR_MODES=size(theta_bf,2);
+Nv=1;
+
+disp('Calculating alpha,vp,dalphadh,dvpdh...')
+for hj=1:3
+    theta=theta_bf(hj,:);
+    Height=HH+dH(hj);
+    
+% calculating alpha,vp,excitation factor
+[AttenuationRate3,PhaseVelocity3,ExcitationFactor,SI]=...
+    alpha_vp_EF3(theta,Height);
+alpha_bf(hj,:)=AttenuationRate3;
+vp_bf(hj,:)=PhaseVelocity3;
+
+end
+
+[dalpha,dvp]=dalpha_dvp(alpha_bf,vp_bf,dH(1));
+
+factor_v3=PhaseVelocity3.^2./dvp;
+
+disp('Computing Er and Sigma...')
+%d_start=100;       % d=500-3000km
+%d_end=3600;
+%d_interval=20;   % interval is 10km
+%d_number=(d_end-d_start)/d_interval+1;
+
+d=d_start;
+dd1=1;
+for dd=1:d_number
+
+[EMagnitude,F_n,phi_n]=...
+Fn_phin3(AttenuationRate3,PhaseVelocity3,ExcitationFactor,d);
+
+[theta_dx,t1,t2]=solve_theta_dx3(F_n,phi_n,dalpha,dvp,PhaseVelocity3,d,Nv);
+
+[sum_Er,SigmaDeltaPhi]=...
+Er_Sig3(EMagnitude,AttenuationRate3,PhaseVelocity3,ExcitationFactor,d,theta_dx);
+
+Er(dd)=sum_Er;
+sigma(dd)=SigmaDeltaPhi;
+
+if mod(dd,10)==0
+   distance3(dd1)=d;
+   sigma3(dd1)=SigmaDeltaPhi;
+   dd1=dd1+1;
+end
+
+d=d+d_interval;
+
+end
+
+% plot numerical results
+disp('plotting results...')
+distance=d_start:d_interval:d_end;
+
+plot(distance-300,20*log(sigma)-220,'b','Linewidth',2)
+%plot(distance3,sigma3,'bs','MarkerFaceColor','b')
+xlabel('传播距离 (km)')
+set(gca,'FontName','Times New Roman','FontSize',15)
+
+ylabel('场强E_r (dB)')
+
+l1=legend('90km有效高度','70km有效高度');
+set(l1,'FontSize',15)
+axis([0 4000 -300 -100])
+
+hold on
+% line([0.5e4 0.5e4 nan 1e4 1e4 nan 1.5e4 1.5e4],[10 1e4 nan 10 1e4 nan 10 1e4]...
+%     ,'color',[0.8 0.8 0.8],'LineStyle','-')
+
+h1=plot([1500 3000],[-230 -230],'k--','Linewidth',2);
+hold on
+h2=plot([1500 3000],[-140 -140],'k--','Linewidth',2);
+hold on
+h3=plot([1500 1500],[-140 -230],'k--','Linewidth',2);
+hold on
+h4=plot([3000 3000],[-140 -230],'k--','Linewidth',2);
+hold on
+h5=plot([2200 2200],[-120 -250],'r--','Linewidth',2);
+set(get(get(h1,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+set(get(get(h2,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+set(get(get(h3,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+set(get(get(h4,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+set(get(get(h5,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+% plot([10 2e4],[1000 1000],'color',[0.8 0.8 0.8],'LineStyle','--')
+str1 = '昼夜过渡区域';
+text(1800,-120,str1,'FontSize',15)
+str2 = '白天';
+text(1700,-130,str2,'FontSize',15)
+str3 = '夜晚';
+text(2500,-130,str3,'FontSize',15)
+annotation('arrow',[0.52 0.58],[0.8 0.8])
+
+
+
